@@ -40,13 +40,17 @@ public class Playfield
 	
 	public void setTetromino(Tetromino block)
 	{
+		if (!reachedTop())
+		{
 			block.setCenter(new Point(cols / 2, 1));
 			curBlock = block;
+		}
 	}
 	
 	// rotate block until it reaches a valid orientation, might be original orientation
 	public void rotateBlock()
 	{
+		if (curBlock != null && !reachedTop())
 		do
 		{
 			curBlock.rotate();
@@ -55,7 +59,7 @@ public class Playfield
 	
 	public void moveBlockLeft()
 	{
-		if (curBlock != null)
+		if (curBlock != null && !reachedTop())
 		{
 			Point p = curBlock.getCenter();
 			curBlock.setCenter(new Point(p.x - 1, p.y));
@@ -66,7 +70,7 @@ public class Playfield
 	
 	public void moveBlockRight()
 	{
-		if (curBlock != null)
+		if (curBlock != null && !reachedTop())
 		{
 			Point p = curBlock.getCenter();
 			curBlock.setCenter(new Point(p.x + 1, p.y));
@@ -78,7 +82,7 @@ public class Playfield
 	// locks block if it cannot move down
 	public void moveBlockDown()
 	{
-		if (curBlock != null)
+		if (curBlock != null && !reachedTop())
 		{
 			Point p = curBlock.getCenter();
 			curBlock.setCenter(new Point(p.x, p.y + 1));
@@ -126,6 +130,8 @@ public class Playfield
 	// moves the block down until it locks
 	public void dropBlock()
 	{
+		if (reachedTop())
+			return;
 		while (curBlock != null)
 			moveBlockDown();
 	}
@@ -133,6 +139,16 @@ public class Playfield
 	public int getScore()
 	{
 		return score;
+	}
+	
+	public boolean reachedTop()
+	{
+		for (int i = 0; i < cols; i++)
+		{
+			if (field[0][i] != Color.WHITE || field[1][i] != Color.WHITE)
+				return true;
+		}
+		return false;
 	}
 	
 	// makes sure current block is in field and does not collide with other blocks
@@ -152,6 +168,8 @@ public class Playfield
 		return true;
 	}
 	
+	// pass in canvas to draw on and edges of what is visible
+	// canvas's bounds do not correspond exactly with visible space
 	public void draw(Canvas canvas, int left, int top, int width, int height)
 	{
 		float x0 = left, y0 = top;
