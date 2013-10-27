@@ -38,12 +38,12 @@ public class Playfield
 		paints.put(Color.WHITE, p);
 	}
 	
-	public void setTetromino(Tetromino block)
+	public void newBlock()
 	{
 		if (!reachedTop())
 		{
-			block.setCenter(new Point(cols / 2, 1));
-			curBlock = block;
+			curBlock = Tetromino.randBlock();
+			curBlock.setCenter(new Point(cols / 2, 1));
 		}
 	}
 	
@@ -61,10 +61,10 @@ public class Playfield
 	{
 		if (curBlock != null && !reachedTop())
 		{
-			Point p = curBlock.getCenter();
-			curBlock.setCenter(new Point(p.x - 1, p.y));
+			Point ctr = curBlock.getCenter();
+			curBlock.setCenter(new Point(ctr.x - 1, ctr.y));
 			if (!isValidPos())
-				curBlock.setCenter(p);
+				curBlock.setCenter(ctr);
 		}
 	}
 	
@@ -72,10 +72,10 @@ public class Playfield
 	{
 		if (curBlock != null && !reachedTop())
 		{
-			Point p = curBlock.getCenter();
-			curBlock.setCenter(new Point(p.x + 1, p.y));
+			Point ctr = curBlock.getCenter();
+			curBlock.setCenter(new Point(ctr.x + 1, ctr.y));
 			if (!isValidPos())
-				curBlock.setCenter(p);
+				curBlock.setCenter(ctr);
 		}
 	}
 
@@ -84,16 +84,17 @@ public class Playfield
 	{
 		if (curBlock != null && !reachedTop())
 		{
-			Point p = curBlock.getCenter();
-			curBlock.setCenter(new Point(p.x, p.y + 1));
+			Point ctr = curBlock.getCenter();
+			curBlock.setCenter(new Point(ctr.x, ctr.y + 1));
 			if (!isValidPos())
 			{
-				curBlock.setCenter(p);
+				curBlock.setCenter(ctr);
 				Point coords[] = curBlock.getCoords();
 				int upperRow = rows, lowerRow = -1;
 				for (int i = 0; i < coords.length; i++)
 				{
-					field[coords[i].y][coords[i].x] = curBlock.getColor();
+					Point p = coords[i];
+					field[p.y][p.x] = curBlock.getColor();
 					upperRow = Math.min(upperRow, p.y);
 					lowerRow = Math.max(lowerRow, p.y);
 				}
@@ -101,7 +102,7 @@ public class Playfield
 				for (int i = upperRow; i <= lowerRow; i++)
 				{
 					boolean rowFilled = true;
-					for (int j = 0; i < cols; j++)
+					for (int j = 0; j < cols; j++)
 					{
 						if (field[i][j] == Color.WHITE)
 							rowFilled = false;
@@ -109,7 +110,7 @@ public class Playfield
 					
 					if (rowFilled)
 					{
-						int clearedRow[] = field[i];
+						int[] clearedRow = field[i];
 						
 						for (int j = 0; j < cols; j++)
 							clearedRow[j] = Color.WHITE;
@@ -149,6 +150,11 @@ public class Playfield
 				return true;
 		}
 		return false;
+	}
+	
+	public boolean hasBlock()
+	{
+		return curBlock != null;
 	}
 	
 	// makes sure current block is in field and does not collide with other blocks
