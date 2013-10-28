@@ -45,7 +45,7 @@ public class Playfield
 	// rotate block until it reaches a valid orientation, might be original orientation
 	public void rotateBlock()
 	{
-		if (!reachedTop())
+		if (!isGameOver())
 		{
 			do
 			{
@@ -57,7 +57,7 @@ public class Playfield
 	// does not move if moving causes collision 
 	public void moveBlockLeft()
 	{
-		if (!reachedTop())
+		if (!isGameOver())
 		{
 			Point ctr = curBlock.getCenter();
 			curBlock.setCenter(new Point(ctr.x - 1, ctr.y));
@@ -69,7 +69,7 @@ public class Playfield
 	// does not move if moving causes collision 
 	public void moveBlockRight()
 	{
-		if (curBlock != null && !reachedTop())
+		if (!isGameOver())
 		{
 			Point ctr = curBlock.getCenter();
 			curBlock.setCenter(new Point(ctr.x + 1, ctr.y));
@@ -81,7 +81,7 @@ public class Playfield
 	// returns true if the block moved down, false if it locked or game is over
 	public boolean moveBlockDown()
 	{
-		if (!reachedTop())
+		if (!isGameOver())
 		{
 			Point ctr = curBlock.getCenter();
 			curBlock.setCenter(new Point(ctr.x, ctr.y + 1));
@@ -171,9 +171,12 @@ public class Playfield
 		changeScore(rowsCleared);
 		
 		// prepares next block
-		curBlock = nextBlock;
-		curBlock.setCenter(new Point(cols / 2, 1));
-		nextBlock = Tetromino.randBlock();
+		if (!isGameOver())
+		{
+			curBlock = nextBlock;
+			curBlock.setCenter(new Point(cols / 2, 1));
+			nextBlock = Tetromino.randBlock();
+		}
 	}
 	
 	// changes score based on how many rows were cleared

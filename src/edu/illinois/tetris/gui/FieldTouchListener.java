@@ -1,5 +1,6 @@
 package edu.illinois.tetris.gui;
 
+import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnTouchListener;
@@ -7,17 +8,41 @@ import edu.illinois.tetris.model.Playfield;
 
 public class FieldTouchListener implements OnTouchListener
 {
-	Playfield field;
-	float downX, downY;
+	private Playfield field;
+	private float downX, downY;
+	private Handler handler;
+	private Runnable blockDownAction;
+	private View fieldView;
 	
-	public FieldTouchListener(Playfield field)
+	public FieldTouchListener(Playfield field, View fieldView)
 	{
 		this.field = field;
+		this.fieldView = fieldView;
+		if (field != null)
+			setUpTimer();
+	}
+	
+	private void setUpTimer()
+	{
+		handler = new Handler();
+		blockDownAction = new Runnable()
+		{
+			public void run()
+			{
+				field.moveBlockDown();
+				fieldView.invalidate();
+				if (!field.isGameOver())
+					handler.postDelayed(blockDownAction, 1000);
+			}
+		};
+		handler.postDelayed(blockDownAction, 1000);
 	}
 
 	@Override
 	public boolean onTouch(View v, MotionEvent e)
 	{
+		if (field == null)
+			return false;
 		// stores where the finger touches the screen
 		if (e.getActionMasked() == MotionEvent.ACTION_DOWN)
 		{
@@ -28,7 +53,7 @@ public class FieldTouchListener implements OnTouchListener
 		if (e.getActionMasked() == MotionEvent.ACTION_UP)
 		{
 			float dX = e.getRawX() - downX, dXabs = Math.abs(dX), dY = e.getRawY() - downY, dYabs = Math.abs(dY);
-			int minDist = Math.min(v.getWidth(), v.getHeight()) / 2;
+			int minDist = Math.min(v.getWidth(), v.getHeight()) / 3;
 			
 			// check if finger moved more horizontally and moved long distance	
 			if (dXabs / dYabs >= 2 && dXabs >= minDist)
@@ -50,7 +75,7 @@ public class FieldTouchListener implements OnTouchListener
 			else if (dX == 0 && dY == 0)
 				field.moveBlockDown();
 			
-			v.invalidate();
+			fieldView.invalidate();
 		}
 			
 		return true;
