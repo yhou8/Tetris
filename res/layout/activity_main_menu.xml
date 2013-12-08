@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout 
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     android:layout_width="match_parent"
+     android:layout_height="match_parent"
+    >
+     <ImageView
+        android:id="@+id/big_tetris"
+        android:scaleType="centerCrop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/tetris_lead" 
+        android:contentDescription="@string/big_image"/>
+
+     <Button
+         android:id="@+id/check_score"
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:layout_centerHorizontal="true"
+         android:layout_centerVertical="true"
+         android:background="#88000000"
+         android:onClick="checkScore"
+         android:text="@string/check_score"
+         android:textColor="#FFFFFFFF"
+         android:textSize="50sp" />
+
+     <Button
+         android:id="@+id/start_playing"
+         android:layout_width="fill_parent"
+         android:layout_height="wrap_content"
+         android:layout_above="@+id/check_score"
+         android:layout_centerHorizontal="true"
+         android:layout_marginBottom="32dp"
+         android:background="#88000000"
+         android:onClick="startPlaying"
+         android:text="@string/start_playing"
+         android:textColor="#FFFFFFFF"
+         android:textSize="50sp" />
+
+</RelativeLayout >
