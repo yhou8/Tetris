@@ -1,0 +1,34 @@
+game menu buttons
+    single player
+    multi player
+    score
+    help
+
+multiplayer menu
+    "select mode:"
+    mode buttons
+    "pick connections:"
+    list of connections
+
+    enable bluetooth if necessary
+    set up server, client, in other thread
+
+    client picks device and mode, try to connect with server
+    server gets dialog specifying mode and opponent: accepts and start game, or reject and continue listening
+    if accept, each get own socket for communication, close other sockets
+
+game mode
+    time
+    next piece
+    score?
+    animation change?
+    message on game over
+
+multiplayer messages
+    thread for listening
+    send message when clearing row
+    decide on random or controllable effect (random is easier)
+    game over message
+
+
+
