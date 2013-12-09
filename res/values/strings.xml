@@ -10,8 +10,8 @@
     <string name="stop_game">Stop</string>
     <string name="exit_to_main">Save &amp; Exit</string>
     <string name="check_score">(Not Integrated) Check Score in SQL</string>
-    <string name="mode_label">Modes</string>
-    <string name="connection_label">Connections</string>
+    <string name="mode_label">Select Mode</string>
+    <string name="connection_label">Select Paired Device (not all may be in range)</string>
     <string name="seesaw_mode_label">Seesaw</string>
     <string name="sabotage_mode_label">Sabotage</string>
 </resources>
