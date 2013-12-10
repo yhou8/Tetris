@@ -1,71 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout 
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	android:layout_width="match_parent"
-	android:layout_height="match_parent" >
-   
-	<ImageView
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:contentDescription="@string/big_image"
-	    android:scaleType="centerCrop"
-	    android:src="@drawable/tetris_background" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/tetris_background"
+    android:gravity="center"
+    android:orientation="vertical" >
 
-	<LinearLayout
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_centerInParent="true"
-	    android:orientation="vertical" >
+   <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="16dp"
+        android:background="#88000000"
+        android:gravity="center"
+        android:onClick="onSinglePlayer"
+        android:text="@string/single_player_label"
+        android:textColor="#FFFFFFFF"
+        android:textSize="50sp" />
 
-		<Button
-		    android:layout_width="match_parent"
-		    android:layout_height="wrap_content"
-		    android:layout_marginBottom="16dp"
-		    android:layout_marginTop="16dp"
-		    android:background="#88000000"
-		    android:gravity="center"
-		    android:text="@string/single_player_label"
-		    android:textColor="#FFFFFFFF"
-		    android:textSize="50sp"
-		    android:onClick="onSinglePlayer" />
+    <Button
+        android:id="@+id/multi_player_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="16dp"
+        android:background="#88000000"
+        android:gravity="center"
+        android:onClick="onMultiPlayer"
+        android:text="@string/multi_player_label"
+        android:textColor="#FFFFFFFF"
+        android:textSize="50sp" />
 
-		<Button
-		    android:id="@+id/multi_player_button"
-		    android:layout_width="match_parent"
-		    android:layout_height="wrap_content"
-		    android:layout_marginBottom="16dp"
-		    android:layout_marginTop="16dp"
-		    android:background="#88000000"
-		    android:gravity="center"
-		    android:text="@string/multi_player_label"
-		    android:textColor="#FFFFFFFF"
-		    android:textSize="50sp" 
-		    android:onClick="onMultiPlayer"/>
-		
-		<Button
-		    android:layout_width="match_parent"
-		    android:layout_height="wrap_content"
-		    android:layout_marginBottom="16dp"
-		    android:layout_marginTop="16dp"
-		    android:background="#88000000"
-		    android:gravity="center"
-		    android:text="@string/score_label"
-		    android:textColor="#FFFFFFFF"
-		    android:textSize="50sp" 
-		    android:onClick="onScore"/>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="16dp"
+        android:background="#88000000"
+        android:gravity="center"
+        android:onClick="onScore"
+        android:text="@string/score_label"
+        android:textColor="#FFFFFFFF"
+        android:textSize="50sp" />
 
-		<Button
-		    android:layout_width="match_parent"
-		    android:layout_height="wrap_content"
-		    android:layout_marginBottom="16dp"
-		    android:layout_marginTop="16dp"
-		    android:background="#88000000"
-		    android:gravity="center"
-		    android:text="@string/help_label"
-		    android:textColor="#FFFFFFFF"
-		    android:textSize="50sp" 
-		    android:onClick="onHelp"/>
-		
-		</LinearLayout>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="16dp"
+        android:background="#88000000"
+        android:gravity="center"
+        android:onClick="onHelp"
+        android:text="@string/help_label"
+        android:textColor="#FFFFFFFF"
+        android:textSize="50sp" />
 
-</RelativeLayout >
+</LinearLayout >
