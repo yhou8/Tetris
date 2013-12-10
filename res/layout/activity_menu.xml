@@ -1,38 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout 
-     xmlns:android="http://schemas.android.com/apk/res/android"
-     android:layout_width="match_parent"
-     android:layout_height="match_parent"
-    >
-     <ImageView
-        android:id="@+id/big_tetris"
-        android:scaleType="centerCrop"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:src="@drawable/tetris_lead" 
-        android:contentDescription="@string/big_image"/>
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:layout_width="match_parent"
+	android:layout_height="match_parent" >
+   
+	<ImageView
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:contentDescription="@string/big_image"
+	    android:scaleType="centerCrop"
+	    android:src="@drawable/tetris_background" />
 
-     <Button
-         android:id="@+id/check_score"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_centerHorizontal="true"
-         android:layout_centerVertical="true"
-         android:background="#88000000"
-         android:text="@string/check_score"
-         android:textColor="#FFFFFFFF"
-         android:textSize="50sp" />
+	<LinearLayout
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_centerInParent="true"
+	    android:orientation="vertical" >
 
-     <Button
-         android:id="@+id/start_playing"
-         android:layout_width="match_parent"
-         android:layout_height="wrap_content"
-         android:layout_above="@+id/check_score"
-         android:layout_centerHorizontal="true"
-         android:layout_marginBottom="32dp"
-         android:background="#88000000"
-         android:text="@string/start_playing"
-         android:textColor="#FFFFFFFF"
-         android:textSize="50sp" />
+		<Button
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_marginBottom="16dp"
+		    android:layout_marginTop="16dp"
+		    android:background="#88000000"
+		    android:gravity="center"
+		    android:text="@string/single_player_label"
+		    android:textColor="#FFFFFFFF"
+		    android:textSize="50sp"
+		    android:onClick="onSinglePlayer" />
+
+		<Button
+		    android:id="@+id/multi_player_button"
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_marginBottom="16dp"
+		    android:layout_marginTop="16dp"
+		    android:background="#88000000"
+		    android:gravity="center"
+		    android:text="@string/multi_player_label"
+		    android:textColor="#FFFFFFFF"
+		    android:textSize="50sp" 
+		    android:onClick="onMultiPlayer"/>
+		
+		<Button
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_marginBottom="16dp"
+		    android:layout_marginTop="16dp"
+		    android:background="#88000000"
+		    android:gravity="center"
+		    android:text="@string/score_label"
+		    android:textColor="#FFFFFFFF"
+		    android:textSize="50sp" 
+		    android:onClick="onScore"/>
+
+		<Button
+		    android:layout_width="match_parent"
+		    android:layout_height="wrap_content"
+		    android:layout_marginBottom="16dp"
+		    android:layout_marginTop="16dp"
+		    android:background="#88000000"
+		    android:gravity="center"
+		    android:text="@string/help_label"
+		    android:textColor="#FFFFFFFF"
+		    android:textSize="50sp" 
+		    android:onClick="onHelp"/>
+		
+		</LinearLayout>
 
 </RelativeLayout >
