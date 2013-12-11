@@ -1,7 +1,6 @@
 package edu.illinois.tetris.model;
 
 import android.graphics.*;
-import android.util.SparseArray;
 
 public class Playfield
 {
@@ -20,9 +19,6 @@ public class Playfield
 		for (int r = 0; r < this.rows; r++)
 			for (int c = 0; c < this.cols; c++)
 				field[r][c] = Color.WHITE;
-		
-		int colors[] = Tetromino.colorSet;
-		int numColors = colors.length;
 		
 		curBlock = Tetromino.randBlock();
 		curBlock.setCenter(new Point(cols / 2, 1));

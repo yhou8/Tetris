@@ -29,7 +29,7 @@ public class MenuActivity extends Activity
 	{
 	    // tells game activity to start on single player mode
 	    Intent singlePlayerIntent = new Intent(this, PlayActivity.class);
-	    singlePlayerIntent.putExtra(TetrisApplication.MODE_KEY, TetrisApplication.GameMode.SINGLE.toString());
+	    singlePlayerIntent.putExtra(TetrisApplication.MODE_KEY, TetrisApplication.SINGLE_MODE);
 	    startActivity(singlePlayerIntent);
 	}
 

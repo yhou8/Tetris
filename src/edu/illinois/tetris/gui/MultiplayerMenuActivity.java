@@ -13,11 +13,6 @@ import edu.illinois.engr.courses.cs241.honors.tetris.*;
 
 public class MultiplayerMenuActivity extends Activity
 {
-    private final static UUID SOCKET_UUID = UUID.randomUUID();
-    public final static String SEESAW_MODE = "seesaw";
-    public final static String SABOTAGE_MODE = "sabotage";
-    public final static String MODE_KEY = "mode";
-    
     private Button seesawMode;
     private Button sabotageMode;
     private ListView deviceListView;
@@ -31,36 +26,20 @@ public class MultiplayerMenuActivity extends Activity
         this.setContentView(R.layout.activity_menu_multiplayer);
         
         seesawMode = (Button)findViewById(R.id.seesaw_mode);
-        seesawMode.setOnClickListener(new OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                Toast.makeText(MultiplayerMenuActivity.this, deviceListView.getSelectedItem().toString(), Toast.LENGTH_SHORT).show();
-            }
-        });
         
         sabotageMode = (Button)findViewById(R.id.sabotage_mode);
-        sabotageMode.setOnClickListener(new OnClickListener()
-        {
-            @Override
-            public void onClick(View v)
-            {
-                Toast.makeText(MultiplayerMenuActivity.this, deviceListView.getSelectedItem().toString(), Toast.LENGTH_SHORT).show();
-            }
-        });
 
         deviceListView = (ListView)findViewById(R.id.connections_list);
         deviceListView.setOnItemClickListener(new OnItemClickListener()
         {
+            // start client task 
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
                     long arg3)
             {
-                Toast.makeText(MultiplayerMenuActivity.this, deviceList.getItem(arg2).getName(), Toast.LENGTH_SHORT).show();
-                
             }
         });
+        
         Set<BluetoothDevice> bondedDevicesSet = BluetoothAdapter.getDefaultAdapter().getBondedDevices();
         BluetoothDevice[] bondedDevices = new BluetoothDevice[0];
         if (bondedDevicesSet != null)
@@ -82,42 +61,12 @@ public class MultiplayerMenuActivity extends Activity
         deviceListView.setAdapter(deviceList);
     }
     
-    // fill list view with bonded devices
-    @Override
-    protected void onStart()
-    {
-        super.onStart();
-    }
-    
     // start server socket
     @Override
     protected void onResume()
     {
         super.onResume();
-//        new ServerTask().execute("");
-    }
-    
-    // stores the information needed to start a game
-    private class GameParams
-    {
-        private String mode;
-        private BluetoothDevice device;
-        
-        public GameParams(String mode, BluetoothDevice device)
-        {
-            this.mode = mode;
-            this.device = device;
-        }
-
-        public String getMode()
-        {
-            return mode;
-        }
-
-        public BluetoothDevice getDevice()
-        {
-            return device;
-        }
+        new ServerTask().execute("");
     }
     
     private class ServerTask extends AsyncTask<String, String, BluetoothSocket>
@@ -125,6 +74,9 @@ public class MultiplayerMenuActivity extends Activity
         private BluetoothServerSocket serverSocket;
         private BluetoothSocket clientSocket;
         
+        // try accept connection
+        // if connect, read name:mode, send name
+        // start playactivity, maybe in ui thread
         @Override
         protected BluetoothSocket doInBackground(String... params)
         {
@@ -152,6 +104,11 @@ public class MultiplayerMenuActivity extends Activity
         private BluetoothSocket clientSocket;
         
         @Override
+        // try connect as client
+        // connection error, tell cannot connect, maybe range error
+        // if connect, write mode: name
+        // if server declines, stop and tell
+        // else start playActivity, send mode, name, device
         protected BluetoothSocket doInBackground(GameParams... params)
         {
             device = params[0].getDevice();
@@ -161,6 +118,7 @@ public class MultiplayerMenuActivity extends Activity
             {
                 clientSocket = device.createRfcommSocketToServiceRecord(SOCKET_UUID);
                 clientSocket.connect();
+                clientSocket.
                 // write game mode, maybe device name on stream
                 return clientSocket;
             }
