@@ -26,17 +26,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity
-            android:name="edu.illinois.tetris.gui.MultiplayerMenuActivity"
+        <activity android:name="edu.illinois.tetris.gui.MultiplayerMenuActivity"
             android:label="@string/app_name" >
         </activity>
-
-        <activity
-            android:name="edu.illinois.tetris.gui.GameActivity"
-            android:label="@string/app_name" >
+        
+        <activity android:name="edu.illinois.tetris.gui.PlayActivity"
+            android:label="@string/app_name">
         </activity>
-    
+
     </application>
 
 </manifest>

@@ -1,12 +1,13 @@
 package edu.illinois.tetris.model;
 
-import android.graphics.Color;
-import android.graphics.Point;
+import android.graphics.*;
+import android.util.*;
 
 public class Tetromino implements Cloneable
 {
 	private static Tetromino blockTypes[];
 	public static int colorSet[];
+	public static SparseArray<Paint> paints;
 	
 	private int color;
 	private Point center;
@@ -19,13 +20,21 @@ public class Tetromino implements Cloneable
 		colorSet = new int[] {Color.CYAN, Color.BLUE, Color.rgb(255, 127, 0), Color.YELLOW, Color.GREEN, Color.rgb(127, 0, 127), Color.RED};
 		
 		blockTypes = new Tetromino[7];
-		blockTypes[0] = new Tetromino(Color.CYAN, true, new Point[] {new Point(-2, -1), new Point(-1, -1), new Point(1, -1), new Point(2, -1)});
+		blockTypes[0] = new Tetromino(Color.CYAN, true, new Point[] {new Point(-2, 1), new Point(-1, 1), new Point(1, 1), new Point(2, 1)});
 		blockTypes[1] = new Tetromino(Color.BLUE, false, new Point[] {new Point(-1, -1), new Point(-1, 0), new Point(0, 0), new Point(1, 0)});
 		blockTypes[2] = new Tetromino(Color.rgb(255, 127, 0), false, new Point[] {new Point(1, -1), new Point(-1, 0), new Point(0, 0), new Point(1, 0)});
 		blockTypes[3] = new Tetromino(Color.YELLOW, true, new Point[] {new Point(-1, -1), new Point(1, -1), new Point(-1, 1), new Point(1, 1)});
 		blockTypes[4] = new Tetromino(Color.GREEN, false, new Point[] {new Point(0, -1), new Point(1, -1), new Point(-1, 0), new Point(0, 0)});
 		blockTypes[5] = new Tetromino(Color.rgb(127, 0, 127), false, new Point[] {new Point(0, -1), new Point(-1, 0), new Point(0, 0), new Point(1, 0)});
 		blockTypes[6] = new Tetromino(Color.RED, false, new Point[] {new Point(-1, -1), new Point(0, -1), new Point(0, 0), new Point(1, 0)});
+		
+		paints = new SparseArray<Paint>(colorSet.length);
+        for (int i = 0; i < colorSet.length; i++)
+        {
+            Paint p = new Paint();
+            p.setColor(colorSet[i]);
+            paints.put(colorSet[i], p);
+        }
 	}
 	
 	public static int[] getColorSet()
@@ -99,15 +108,46 @@ public class Tetromino implements Cloneable
 				realCoordinates[i] = new Point();
 
 				if (relativeCoordinates[i].x > 0)
-					realCoordinates[i].x = relativeCoordinates[i].x - 1 + center.x;
+                    realCoordinates[i].x = relativeCoordinates[i].x + center.x;
 				else
-					realCoordinates[i].x = relativeCoordinates[i].x + center.x;
+                    realCoordinates[i].x = relativeCoordinates[i].x - 1 + center.x;
 				
-				if (relativeCoordinates[i].y > 0)
-					realCoordinates[i].y = relativeCoordinates[i].y  - 1 + center.y;
+				if (relativeCoordinates[i].y < 0)
+                    realCoordinates[i].y = relativeCoordinates[i].y + center.y;
 				else
-					realCoordinates[i].y = relativeCoordinates[i].y + center.y;
+                    realCoordinates[i].y = relativeCoordinates[i].y - 1 + center.y;
 			}
+			
 		}
+	}
+	
+	public void drawPiece(Canvas canvas, Rect drawingBounds, int rows, int cols)
+	{
+        float x0 = drawingBounds.left, y0 = drawingBounds.top;
+        float rowLength = (float)drawingBounds.height() / rows;
+        float colLength = (float)drawingBounds.width() / cols;
+        float cellLength = rowLength;
+        
+        
+        // field bounded by canvas width
+        if (rowLength < colLength)
+        {
+            cellLength = rowLength;
+            x0 += (drawingBounds.width() - cellLength * cols) / 2;
+        }
+        if (colLength < rowLength)
+        {
+            cellLength = colLength;
+            y0 += (drawingBounds.height() - cellLength * rows) / 2;
+        }
+        
+        // draw current block
+        Paint paint = paints.get(color);
+        for (int i = 0; i < realCoordinates.length; i++)
+        {
+            Point p = realCoordinates[i];
+            float x = x0 + cellLength * p.x, y = y0 + cellLength * p.y;
+            canvas.drawRect(x, y, x + cellLength, y + cellLength, paint);
+        }
 	}
 }

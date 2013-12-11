@@ -7,12 +7,13 @@ import android.bluetooth.*;
 import android.os.*;
 import android.view.*;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.*;
 import edu.illinois.engr.courses.cs241.honors.tetris.*;
 
 public class MultiplayerMenuActivity extends Activity
 {
-    private final static UUID SOCKET_UUID = UUID.fromString("Tetris");
+    private final static UUID SOCKET_UUID = UUID.randomUUID();
     public final static String SEESAW_MODE = "seesaw";
     public final static String SABOTAGE_MODE = "sabotage";
     public final static String MODE_KEY = "mode";
@@ -35,8 +36,7 @@ public class MultiplayerMenuActivity extends Activity
             @Override
             public void onClick(View v)
             {
-                if (deviceListView.getSelectedItem() != null)
-                    new ClientTask().execute(new GameParams(SEESAW_MODE, (BluetoothDevice)deviceListView.getSelectedItem()));
+                Toast.makeText(MultiplayerMenuActivity.this, deviceListView.getSelectedItem().toString(), Toast.LENGTH_SHORT).show();
             }
         });
         
@@ -46,18 +46,21 @@ public class MultiplayerMenuActivity extends Activity
             @Override
             public void onClick(View v)
             {
-                if (deviceListView.getSelectedItem() != null)
-                    new ClientTask().execute(new GameParams(SABOTAGE_MODE, (BluetoothDevice)deviceListView.getSelectedItem()));
+                Toast.makeText(MultiplayerMenuActivity.this, deviceListView.getSelectedItem().toString(), Toast.LENGTH_SHORT).show();
             }
         });
 
         deviceListView = (ListView)findViewById(R.id.connections_list);
-    }
-    
-    // fill list view with bonded devices
-    @Override
-    protected void onStart()
-    {
+        deviceListView.setOnItemClickListener(new OnItemClickListener()
+        {
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
+                    long arg3)
+            {
+                Toast.makeText(MultiplayerMenuActivity.this, deviceList.getItem(arg2).getName(), Toast.LENGTH_SHORT).show();
+                
+            }
+        });
         Set<BluetoothDevice> bondedDevicesSet = BluetoothAdapter.getDefaultAdapter().getBondedDevices();
         BluetoothDevice[] bondedDevices = new BluetoothDevice[0];
         if (bondedDevicesSet != null)
@@ -79,11 +82,19 @@ public class MultiplayerMenuActivity extends Activity
         deviceListView.setAdapter(deviceList);
     }
     
+    // fill list view with bonded devices
+    @Override
+    protected void onStart()
+    {
+        super.onStart();
+    }
+    
     // start server socket
     @Override
     protected void onResume()
     {
-        new ServerTask().execute("");
+        super.onResume();
+//        new ServerTask().execute("");
     }
     
     // stores the information needed to start a game

@@ -9,7 +9,6 @@ public class Playfield
 	private int rows, cols;
 	private int[][] field;
 	private Tetromino curBlock, nextBlock;
-	private SparseArray<Paint> paints;
 	
 	public Playfield(int rows, int cols)
 	{
@@ -24,18 +23,6 @@ public class Playfield
 		
 		int colors[] = Tetromino.colorSet;
 		int numColors = colors.length;
-		
-		Paint p;
-		paints = new SparseArray<Paint>(numColors);
-		for (int i = 0; i < numColors; i++)
-		{
-			p = new Paint();
-			p.setColor(colors[i]);
-			paints.put(colors[i], p);
-		}
-		p = new Paint();
-		p.setColor(Color.WHITE);
-		paints.put(Color.WHITE, p);
 		
 		curBlock = Tetromino.randBlock();
 		curBlock.setCenter(new Point(cols / 2, 1));
@@ -219,22 +206,12 @@ public class Playfield
 			for (int c = 0; c < cols; c++)
 			{
 				float x = x0 + length * c, y = y0 + length * (r - 2);
-				canvas.drawRect(x, y, x + length, y + length, paints.get(field[r][c]));
+				canvas.drawRect(x, y, x + length, y + length, Tetromino.paints.get(field[r][c]));
 			}
 		}
 		
 		// draw current block
 		if (curBlock != null)
-		{
-			Point coords[] = curBlock.getCoords();
-			Paint curPaint = paints.get(curBlock.getColor());
-			
-			for (int i = 0; i < coords.length; i++)
-			{
-				Point p = coords[i];
-				float x = x0 + length * p.x, y = y0 + length * (p.y - 2);
-				canvas.drawRect(x, y, x + length, y + length, curPaint);
-			}
-		}
+		    curBlock.drawPiece(canvas, bounds, rows - 2, cols);
 	}
 }
