@@ -6,27 +6,27 @@ import android.util.*;
 public class Tetromino implements Cloneable
 {
 	private static Tetromino blockTypes[];
-	public static int colorSet[];
-	public static SparseArray<Paint> paints;
+	private static int colorSet[];
+	private static SparseArray<Paint> paints;
 	
 	private int color;
 	private Point center;
-	private Point relativeCoordinates[];
-	private Point realCoordinates[];
+	private Point relativePts[];
+	private Point realPts[];
 	private boolean cornerCentered;
 	
 	static
 	{
 		colorSet = new int[] {Color.CYAN, Color.BLUE, Color.rgb(255, 127, 0), Color.YELLOW, Color.GREEN, Color.rgb(127, 0, 127), Color.RED};
-		
+
 		blockTypes = new Tetromino[7];
-		blockTypes[0] = new Tetromino(Color.CYAN, true, new Point[] {new Point(-2, 1), new Point(-1, 1), new Point(1, 1), new Point(2, 1)});
-		blockTypes[1] = new Tetromino(Color.BLUE, false, new Point[] {new Point(-1, -1), new Point(-1, 0), new Point(0, 0), new Point(1, 0)});
-		blockTypes[2] = new Tetromino(Color.rgb(255, 127, 0), false, new Point[] {new Point(1, -1), new Point(-1, 0), new Point(0, 0), new Point(1, 0)});
-		blockTypes[3] = new Tetromino(Color.YELLOW, true, new Point[] {new Point(-1, -1), new Point(1, -1), new Point(-1, 1), new Point(1, 1)});
-		blockTypes[4] = new Tetromino(Color.GREEN, false, new Point[] {new Point(0, -1), new Point(1, -1), new Point(-1, 0), new Point(0, 0)});
-		blockTypes[5] = new Tetromino(Color.rgb(127, 0, 127), false, new Point[] {new Point(0, -1), new Point(-1, 0), new Point(0, 0), new Point(1, 0)});
-		blockTypes[6] = new Tetromino(Color.RED, false, new Point[] {new Point(-1, -1), new Point(0, -1), new Point(0, 0), new Point(1, 0)});
+		blockTypes[0] = new Tetromino(colorSet[0], true, new Point[] {new Point(-2, 1), new Point(-1, 1), new Point(1, 1), new Point(2, 1)});
+		blockTypes[1] = new Tetromino(colorSet[1], false, new Point[] {new Point(-1, -1), new Point(-1, 0), new Point(0, 0), new Point(1, 0)});
+		blockTypes[2] = new Tetromino(colorSet[2], false, new Point[] {new Point(1, -1), new Point(-1, 0), new Point(0, 0), new Point(1, 0)});
+		blockTypes[3] = new Tetromino(colorSet[3], true, new Point[] {new Point(-1, -1), new Point(1, -1), new Point(-1, 1), new Point(1, 1)});
+		blockTypes[4] = new Tetromino(colorSet[4], false, new Point[] {new Point(0, -1), new Point(1, -1), new Point(-1, 0), new Point(0, 0)});
+		blockTypes[5] = new Tetromino(colorSet[5], false, new Point[] {new Point(0, -1), new Point(-1, 0), new Point(0, 0), new Point(1, 0)});
+		blockTypes[6] = new Tetromino(colorSet[6], false, new Point[] {new Point(-1, -1), new Point(0, -1), new Point(0, 0), new Point(1, 0)});
 		
 		paints = new SparseArray<Paint>(colorSet.length);
         for (int i = 0; i < colorSet.length; i++)
@@ -37,37 +37,47 @@ public class Tetromino implements Cloneable
         }
 	}
 	
-	public static int[] getColorSet()
-	{
-		return colorSet;
-	}
-	
+	// returns Paint associated with given color
+    public static Paint getPaint(int color)
+    {
+        return paints.get(color);
+    }
+    
 	// Creates a random tetromino block
 	public static Tetromino randBlock()
 	{
+        int randIdx = (int)(blockTypes.length * Math.random());
 		try
 		{
-			int randInd = (int)(7 * Math.random());
-			return (Tetromino)blockTypes[randInd].clone();
+			return (Tetromino)blockTypes[randIdx].clone();
 		}
 		catch (CloneNotSupportedException e)
 		{
+		    // Tetromino supports clone
+	        return null;
 		}
-		return null;
 	}
 	
-	private Tetromino(int color, boolean cornerCentered, Point coords[])
-	{
-		this.relativeCoordinates = coords;
-		realCoordinates = new Point[4];
-		this.cornerCentered = cornerCentered;
-		this.color = color;
-	}
-	
+    public Tetromino(int color, boolean cornerCentered, Point coords[])
+    {
+        relativePts = coords;
+        realPts = new Point[coords.length];
+        this.cornerCentered = cornerCentered;
+        this.color = color;
+        center = new Point();
+        updateCoords();
+    }
+    
+	@Override
+    protected Object clone() throws CloneNotSupportedException
+    {
+        return new Tetromino(color, cornerCentered, relativePts);
+    }
+
 	public void setCenter(Point p)
 	{
 		center = p;
-		calcCoordinates();
+		updateCoords();
 	}
 	
 	public Point getCenter()
@@ -82,72 +92,41 @@ public class Tetromino implements Cloneable
 
 	public Point[] getCoords()
 	{
-		return realCoordinates;
+		return realPts;
 	}
 	
 	// Rotate the block by 90 degree clockwise
-	public void rotate()
+	public void rotateCW()
 	{
-		for (int i = 0; i < 4; i++)
-			relativeCoordinates[i] = new Point(-relativeCoordinates[i].y, relativeCoordinates[i].x);
-		calcCoordinates();
+		for (int i = 0; i < relativePts.length; i++)
+			relativePts[i] = new Point(-relativePts[i].y, relativePts[i].x);
+		updateCoords();
 	}
 
 	// calculates the block's coordinates using its center and coordinates relative to center
-	private void calcCoordinates()
+	public void updateCoords()
 	{
 		if (!cornerCentered)
 		{
-			for (int i = 0; i < 4; i++)
-				realCoordinates[i] = new Point(relativeCoordinates[i].x + center.x, relativeCoordinates[i].y + center.y);
+			for (int i = 0; i < realPts.length; i++)
+				realPts[i] = new Point(relativePts[i].x + center.x, relativePts[i].y + center.y);
 		}
 		else
 		{
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < realPts.length; i++)
 			{
-				realCoordinates[i] = new Point();
+				realPts[i] = new Point();
 
-				if (relativeCoordinates[i].x > 0)
-                    realCoordinates[i].x = relativeCoordinates[i].x + center.x;
+				if (relativePts[i].x > 0)
+                    realPts[i].x = relativePts[i].x + center.x;
 				else
-                    realCoordinates[i].x = relativeCoordinates[i].x - 1 + center.x;
+                    realPts[i].x = relativePts[i].x - 1 + center.x;
 				
-				if (relativeCoordinates[i].y < 0)
-                    realCoordinates[i].y = relativeCoordinates[i].y + center.y;
+				if (relativePts[i].y < 0)
+                    realPts[i].y = relativePts[i].y + center.y;
 				else
-                    realCoordinates[i].y = relativeCoordinates[i].y - 1 + center.y;
+                    realPts[i].y = relativePts[i].y - 1 + center.y;
 			}
-			
 		}
-	}
-	
-	public void drawPiece(Canvas canvas, Rect drawingBounds, int rows, int cols)
-	{
-        float x0 = drawingBounds.left, y0 = drawingBounds.top;
-        float rowLength = (float)drawingBounds.height() / rows;
-        float colLength = (float)drawingBounds.width() / cols;
-        float cellLength = rowLength;
-        
-        
-        // field bounded by canvas width
-        if (rowLength < colLength)
-        {
-            cellLength = rowLength;
-            x0 += (drawingBounds.width() - cellLength * cols) / 2;
-        }
-        if (colLength < rowLength)
-        {
-            cellLength = colLength;
-            y0 += (drawingBounds.height() - cellLength * rows) / 2;
-        }
-        
-        // draw current block
-        Paint paint = paints.get(color);
-        for (int i = 0; i < realCoordinates.length; i++)
-        {
-            Point p = realCoordinates[i];
-            float x = x0 + cellLength * p.x, y = y0 + cellLength * p.y;
-            canvas.drawRect(x, y, x + cellLength, y + cellLength, paint);
-        }
 	}
 }
