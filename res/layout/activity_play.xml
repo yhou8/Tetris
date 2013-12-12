@@ -3,7 +3,6 @@
     android:id="@+id/field_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/tetris_background"
     android:orientation="vertical" >
 
     <LinearLayout
@@ -17,32 +16,32 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
-            android:gravity="center" />
+            android:gravity="center"
+            />
 
-        <edu.illinois.tetris.gui.PlayfieldView
+        <edu.illinois.tetris.PlayfieldView
             android:id="@+id/opponent_view"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
             android:layout_weight="1" />
 
-        <edu.illinois.tetris.gui.PlayfieldView
+        <edu.illinois.tetris.PlayfieldView
             android:id="@+id/next_piece"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_margin="8dp"
             android:layout_weight="1"
-            android:background="@android:color/transparent" />
+            />
 
     </LinearLayout>
 
-    <edu.illinois.tetris.gui.PlayfieldView
+    <edu.illinois.tetris.PlayfieldView
         android:id="@+id/play_field"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_margin="8dp"
         android:layout_weight="20"
-        android:background="@android:color/transparent" />
+        />
 
 </LinearLayout>

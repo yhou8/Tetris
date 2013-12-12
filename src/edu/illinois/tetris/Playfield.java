@@ -1,12 +1,12 @@
-package edu.illinois.tetris.model;
+package edu.illinois.tetris;
 
+import java.util.*;
 import android.graphics.*;
 
 public class Playfield
 {
 	private int rows, hidRows, cols;
 	private int[][] field;
-//	private Tetromino curBlock, nextBlock;
 	
 	public Playfield(int rows, int cols)
 	{
@@ -17,22 +17,17 @@ public class Playfield
 	{
         this.rows = rows;
         this.cols = cols;
+        hidRows = hiddenRows;
         
         // set all colors to transparent
         field = new int[rows + hidRows][cols];
-        for (int r = 0; r < rows + hidRows; r++)
-            for (int c = 0; c < this.cols; c++)
-                field[r][c] = 0;
+        for (int[] row: field)
+            Arrays.fill(row, 0);
 	}
 	
 	public int getRows()
     {
         return rows;
-    }
-
-    public int getHiddenRows()
-    {
-        return hidRows;
     }
 
     public int getCols()
@@ -48,15 +43,12 @@ public class Playfield
 	// checks whether the block can be inserted into the field
     public boolean canInsert(Tetromino block)
     {
-        Point coords[] = block.getCoords();
-        for (int i = 0; i < coords.length; i++)
+        for (Point p: block.getCoords())
         {
-            Point p = coords[i];
-            
             // check coordinates are within the field
             if (p.x < 0 || p.x >= cols)
                 return false;
-            if (p.y + hidRows < 0 || p.y + hidRows >= rows)
+            if (p.y + hidRows < 0 || p.y >= rows)
                 return false;
             if (field[p.y + hidRows][p.x] != 0)
                 return false;
@@ -69,26 +61,29 @@ public class Playfield
     {
         int upperRow = hidRows + rows; 
         int lowerRow = -1;
-        Point coords[] = block.getCoords();
+        int blockColor = block.getColor();
 
         // set colors in field to same colors as block, find row span of piece
-        for (int i = 0; i < coords.length; i++)
+        for (Point p: block.getCoords())
         {
-            Point p = coords[i];
-            field[p.y + hidRows][p.x] = block.getColor();
+            field[p.y + hidRows][p.x] = blockColor;
             upperRow = Math.min(upperRow, p.y + hidRows);
             lowerRow = Math.max(lowerRow, p.y + hidRows);
         }
         
         // check whether block completed any rows
         int rowsCleared = 0;
+        boolean rowFilled;
         for (int r = upperRow; r <= lowerRow; r++)
         {
-            boolean rowFilled = true;
-            for (int c = 0; c < cols; c++)
+            rowFilled = true;
+            for (int color: field[r])
             {
-                if (field[r][c] == 0)
+                if (color == 0)
+                {
                     rowFilled = false;
+                    break;
+                }
             }
             
             if (rowFilled)
@@ -96,8 +91,7 @@ public class Playfield
                 int[] clearedRow = field[r];
                 
                 // set cleared row's color to transparent
-                for (int c = 0; c < cols; c++)
-                    clearedRow[c] = 0;
+                Arrays.fill(clearedRow, 0);
                 
                 // shift above rows down 1
                 for (int i = r; i > 0; i--)
@@ -114,15 +108,14 @@ public class Playfield
     // returns whether there are blocks in hidden rows
     public boolean reachedTop()
     {
-    	for (int r = 0; r < hidRows; r++)
-    	{
-    	    for (int c = 0; c < cols; c++)
+        for (int r = 0; r < hidRows; r++)
+        {
+    	    for (int color: field[r])
     	    {
-    			if (field[r][c] != 0)
+    			if (color != 0)
     				return true;
     	    }
-    	}
+        }
     	return false;
     }
-
 }

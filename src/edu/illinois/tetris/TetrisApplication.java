@@ -1,4 +1,4 @@
-package edu.illinois.tetris.gui;
+package edu.illinois.tetris;
 
 import java.util.*;
 import android.app.*;

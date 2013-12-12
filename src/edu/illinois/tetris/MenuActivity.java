@@ -1,4 +1,4 @@
-package edu.illinois.tetris.gui;
+package edu.illinois.tetris;
 
 import android.app.*;
 import android.bluetooth.*;
