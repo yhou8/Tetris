@@ -407,7 +407,7 @@ public class MultiplayerMenuActivity extends Activity {
 	public void seesawOnclick(View view) {
 		if (choosedBTD != null) {
 			myCTask = new ClientTask();
-			myCTask.execute(new GameParams(choosedBTD, "seesaw"));
+			myCTask.execute(new GameParams(choosedBTD, TetrisApplication.SEESAW_MODE));
 		} else {
 			Toast.makeText(getApplicationContext(),
 					"Please select you component", Toast.LENGTH_SHORT).show();
@@ -417,7 +417,7 @@ public class MultiplayerMenuActivity extends Activity {
 	public void sabotageOnclick(View view) {
 		if (choosedBTD != null) {
 			myCTask = new ClientTask();
-			myCTask.execute(new GameParams(choosedBTD, "sabotage"));
+			myCTask.execute(new GameParams(choosedBTD, TetrisApplication.SABOTAGE_MODE));
 		} else {
 			Toast.makeText(getApplicationContext(),
 					"Please select you component", Toast.LENGTH_SHORT).show();
