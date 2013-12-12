@@ -31,13 +31,15 @@
         android:id="@+id/seesaw_mode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/seesaw_mode_label" />
+        android:text="@string/seesaw_mode_label" 
+        android:onClick="seesawOnclick"/>
 
     <Button
         android:id="@+id/sabotage_mode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
-        android:text="@string/sabotage_mode_label" />
+        android:text="@string/sabotage_mode_label" 
+        android:onClick="sabotageOnclick"/>
 
 </LinearLayout>
