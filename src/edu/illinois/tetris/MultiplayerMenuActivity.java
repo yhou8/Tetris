@@ -6,6 +6,7 @@ import java.util.*;
 import android.app.*;
 import android.bluetooth.*;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.*;
 import android.util.Log;
@@ -106,15 +107,17 @@ public class MultiplayerMenuActivity extends Activity {
 	@Override
 	protected void onResume() {
 		super.onResume();
+		Log.d("myApp", "onResume run");
 		mySTask = new ServerTask();
 		mySTask.execute("");
 	}
-	@Override
-	public void onBackPressed() {
 
-	    android.os.Process.killProcess(android.os.Process.myPid());
-	    // This above line close correctly
-	}
+	/*
+	 * @Override public void onBackPressed() {
+	 * 
+	 * android.os.Process.killProcess(android.os.Process.myPid()); // This above
+	 * line close correctly }
+	 */
 
 	private class ServerTask extends AsyncTask<String, String, String[]> {
 
@@ -124,6 +127,7 @@ public class MultiplayerMenuActivity extends Activity {
 
 		@Override
 		protected void onPreExecute() {
+			Log.d("myApp", "onPreexcute");
 			try {
 				sserverSocket = BluetoothAdapter.getDefaultAdapter()
 						.listenUsingRfcommWithServiceRecord("Tetris",
@@ -140,94 +144,124 @@ public class MultiplayerMenuActivity extends Activity {
 		@Override
 		protected String[] doInBackground(String... params) {
 			String[] outputString = null;
-			while (waitforcon) {
-				try {
-					Log.d("myApp", "Server trying to receive connect");
-					sclientSocket = sserverSocket.accept();
+			try {
+				Log.d("myApp", "Server trying to receive connect");
+				sclientSocket = sserverSocket.accept();
 
-					InputStream inputStream = sclientSocket.getInputStream();
-					Log.d("myApp", "Server got input Stream");
-					/*
-					 * server trying to get from output stream
-					 */
-					byte[] buffer = new byte[1024];
-					int bytes = 0;
-					StringBuilder curMsg = new StringBuilder();
-					bytes = inputStream.read(buffer);
-					curMsg.append(new String(buffer, 0, bytes));
-					outputString = curMsg.toString().split(",");
-					Log.d("myApp", "Server get input Stream " + outputString[0]
-							+ " " + outputString[1]);
-					// inputStream.close();
-					waitforcon = false;
-				} catch (IOException e) {
-				}
+				InputStream inputStream = sclientSocket.getInputStream();
+				Log.d("myApp", "Server got input Stream");
+				/*
+				 * server trying to get from output stream
+				 */
+				byte[] buffer = new byte[1024];
+				int bytes = 0;
+				StringBuilder curMsg = new StringBuilder();
+				bytes = inputStream.read(buffer);
+				curMsg.append(new String(buffer, 0, bytes));
+				outputString = curMsg.toString().split(",");
+				Log.d("myApp", "Server get input Stream " + outputString[0]
+						+ " " + outputString[1]);
+				// inputStream.close();
+				waitforcon = false;
+			} catch (IOException e) {
 			}
+
 			return outputString;
 		}
 
 		@Override
 		protected void onPostExecute(String[] outputString) {
-			String QMode = outputString[0];
-			String QUser = outputString[1];
+			if (outputString != null) { // if we get a connection
+				final String QMode = outputString[0];
+				final String QUser = outputString[1];
 
-			// read game mode, device name
-			// prompt the ultimate question, accept or not!?
-			this.dialog.setMessage(QUser + " wants to play with you in "
-					+ QMode + " mode, Do you want to accept?");
-			this.dialog.setButton("Yes", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					waitforcon = false;
-					try {
-						// first send message to client
-						OutputStream writeModeDeviceStream = sclientSocket
-								.getOutputStream();
-						writeModeDeviceStream.flush();
-						String output = new String("Y");
-						Log.d("myApp", "Client writing string" + output);
-						writeModeDeviceStream.write(output.getBytes());
-					} catch (IOException e) {
-						Log.d("myApp",
-								"Error when trying to send message as server");
-					}
-					try {
-						sserverSocket.close();
-					} catch (IOException e) {
-						Log.d("myApp",
-								"In server when closing serversocket, error");
-					}
-					Toast.makeText(getApplicationContext(),
-							"Here we will start the activity as server",
-							Toast.LENGTH_SHORT).show();
-				}
-			});
-			this.dialog.setButton2("No", new DialogInterface.OnClickListener() {
-				public void onClick(DialogInterface dialog, int which) {
-					waitforcon = true;
-					try {
-						// first send message to client
-						OutputStream writeModeDeviceStream = sclientSocket
-								.getOutputStream();
-						writeModeDeviceStream.flush();
-						String output = new String("N");
-						Log.d("myApp", "Client writing string" + output);
-						writeModeDeviceStream.write(output.getBytes());
-					} catch (IOException e) {
-						Log.d("myApp",
-								"Error when trying to send message as server");
-					}
-					// then close the serverSocket and start again
-					try {
-						sserverSocket.close();
-					} catch (IOException e) {
-						Log.d("myApp",
-								"In server when closing serversocket, error");
-					}
-					new ServerTask().execute("");
+				// read game mode, device name
+				// prompt the ultimate question, accept or not!?
+				this.dialog.setMessage(QUser + " wants to play with you in "
+						+ QMode + " mode, Do you want to accept?");
+				this.dialog.setButton("Yes",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								waitforcon = false;
+								try {
+									// first send message to client
+									OutputStream writeModeDeviceStream = sclientSocket
+											.getOutputStream();
+									writeModeDeviceStream.flush();
+									String output = new String("Y");
+									Log.d("myApp", "Client writing string"
+											+ output);
+									writeModeDeviceStream.write(output
+											.getBytes());
+								} catch (IOException e) {
+									Log.d("myApp",
+											"Error when trying to send message as server");
+								}
+								try {
+									sserverSocket.close();
+								} catch (IOException e) {
+									Log.d("myApp",
+											"In server when closing serversocket, error");
+								}
+								Toast.makeText(
+										getApplicationContext(),
+										"Here we will start the activity as server",
+										Toast.LENGTH_SHORT).show();
+								
+								Intent multiPlayerIntent = new Intent(
+										MultiplayerMenuActivity.this,
+										PlayActivity.class);
+								
+								/*multiPlayerIntent.putExtra(
+										TetrisApplication.MODE_KEY, QMode);
+								multiPlayerIntent.putExtra(
+										TetrisApplication.NAME_KEY, QUser);*/
+								multiPlayerIntent.putExtra(
+										TetrisApplication.MODE_KEY,TetrisApplication.SINGLE_MODE);
+								startActivity(multiPlayerIntent);
+								
 
+							}
+						});
+				this.dialog.setButton2("No",
+						new DialogInterface.OnClickListener() {
+							public void onClick(DialogInterface dialog,
+									int which) {
+								waitforcon = true;
+								try {
+									// first send message to client
+									OutputStream writeModeDeviceStream = sclientSocket
+											.getOutputStream();
+									writeModeDeviceStream.flush();
+									String output = new String("N");
+									Log.d("myApp", "Client writing string"
+											+ output);
+									writeModeDeviceStream.write(output
+											.getBytes());
+								} catch (IOException e) {
+									Log.d("myApp",
+											"Error when trying to send message as server");
+								}
+								// then close the serverSocket and start again
+								try {
+									sserverSocket.close();
+								} catch (IOException e) {
+									Log.d("myApp",
+											"In server when closing serversocket, error");
+								}
+								new ServerTask().execute("");
+
+							}
+						});
+				this.dialog.show();
+			} else {
+				try {
+					sserverSocket.close();
+				} catch (IOException e) {
+					Log.d("myApp", "In server when closing serversocket, error");
 				}
-			});
-			this.dialog.show();
+			}
 		}
 	}
 
@@ -304,6 +338,15 @@ public class MultiplayerMenuActivity extends Activity {
 						.show();
 			else {
 				// check if the server wants to play, get input
+				/*
+				 * try { cclientSocket.connect(); } catch (IOException e) {
+				 * Log.d("myApp",
+				 * "in Client, the other side (server user) close");
+				 * this.dialog.dismiss();
+				 * Toast.makeText(getApplicationContext(),
+				 * "The other user close the software",
+				 * Toast.LENGTH_SHORT).show(); return; }
+				 */
 				String outputString = null;
 				try {
 					InputStream inputStream = cclientSocket.getInputStream();
@@ -327,6 +370,19 @@ public class MultiplayerMenuActivity extends Activity {
 					Toast.makeText(getApplicationContext(),
 							"Here we will start the activity as client",
 							Toast.LENGTH_SHORT).show();
+					
+					Intent multiPlayerIntent = new Intent(
+							MultiplayerMenuActivity.this,
+							PlayActivity.class);
+					//do we need to close every thing?
+					/*multiPlayerIntent.putExtra(
+							TetrisApplication.MODE_KEY, QMode);
+					multiPlayerIntent.putExtra(
+							TetrisApplication.NAME_KEY, QUser);*/
+					multiPlayerIntent.putExtra(
+							TetrisApplication.MODE_KEY,TetrisApplication.SINGLE_MODE);
+					startActivity(multiPlayerIntent);
+					
 					return;
 				}
 				if (outputString.equals("N")) {
