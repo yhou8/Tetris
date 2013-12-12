@@ -330,12 +330,15 @@ public class MultiplayerMenuActivity extends Activity {
 		@Override
 		protected void onPostExecute(BluetoothSocket result) {
 
-			if (result == null)
+			if (result == null) {
 				Toast.makeText(
 						MultiplayerMenuActivity.this,
 						"Cannot connect with " + device.getName() + '@'
 								+ device.getAddress(), Toast.LENGTH_SHORT)
 						.show();
+				this.dialog.dismiss();
+			}
+				
 			else {
 				// check if the server wants to play, get input
 				/*
