@@ -2,13 +2,10 @@
 <resources>
 
     <string name="app_name">Tetris</string>
-    <string name="action_settings">Settings</string>
     <string name="single_player_label">Single-player</string>
     <string name="multi_player_label">Multi-player</string>
     <string name="score_label">Score</string>
     <string name="help_label">Help</string>
-    <string name="stop_game">Stop</string>
-    <string name="exit_to_main">Save &amp; Exit</string>
     <string name="mode_label">Select Mode</string>
     <string name="connection_label">Select Paired Device (not all may be in range)</string>
     <string name="seesaw_mode_label">Seesaw</string>

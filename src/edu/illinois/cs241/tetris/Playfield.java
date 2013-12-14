@@ -1,4 +1,4 @@
-package edu.illinois.tetris;
+package edu.illinois.cs241.tetris;
 
 import java.util.*;
 import android.graphics.*;

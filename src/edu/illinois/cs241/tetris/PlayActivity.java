@@ -1,4 +1,4 @@
-package edu.illinois.tetris;
+package edu.illinois.cs241.tetris;
 
 import android.app.*;
 import android.bluetooth.*;
@@ -6,7 +6,7 @@ import android.content.*;
 import android.os.*;
 import android.view.*;
 import android.widget.*;
-import edu.illinois.engr.courses.cs241.honors.tetris.*;
+import edu.illinois.cs241.tetris.*;
 
 public class PlayActivity extends Activity implements View.OnTouchListener, Runnable
 {
@@ -54,12 +54,11 @@ public class PlayActivity extends Activity implements View.OnTouchListener, Runn
         oppFieldView.setFaintBlock(false);
         
         // extract Intent extras
-        Intent intent = getIntent();
+/*        Intent intent = getIntent();
         mode = intent.getStringExtra(TetrisApplication.MODE_KEY);
         if (!mode.equals(TetrisApplication.SINGLE_MODE))
         {
             oName = intent.getStringExtra(TetrisApplication.NAME_KEY);
-            oDevice = intent.getParcelableExtra(TetrisApplication.DEVICE_KEY);
             if (oDevice != null)
             {
                 // set up client task
@@ -69,7 +68,7 @@ public class PlayActivity extends Activity implements View.OnTouchListener, Runn
                 // set up server task
             }
         }
-        else
+        else*/
         {
             Toast.makeText(this, "Starting...", Toast.LENGTH_SHORT).show();
             shiftNextBlock();

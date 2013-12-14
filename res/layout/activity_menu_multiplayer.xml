@@ -2,6 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/tetris_background"
     android:gravity="center"
     android:orientation="vertical" >
 
@@ -13,7 +14,7 @@
         android:text="@string/connection_label" />
 
     <ListView
-        android:id="@+id/connections_list"
+        android:id="@+id/devices_list"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginLeft="16dp"
@@ -28,14 +29,12 @@
         android:text="@string/mode_label" />
 
     <Button
-        android:id="@+id/seesaw_mode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/seesaw_mode_label" 
         android:onClick="seesawOnclick"/>
 
     <Button
-        android:id="@+id/sabotage_mode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
