@@ -16,7 +16,7 @@ public class PlayfieldView extends View
     private int rows, cols;
 	private float left, right, top, bottom;
 	private float length;
-	private boolean faintBlock;
+	private boolean mBlockHilighted;
 	
 	static
 	{
@@ -72,14 +72,14 @@ public class PlayfieldView extends View
         return block;
     }
 
-    public boolean isFaintBlock()
+    public boolean isBlockHighlighted()
     {
-        return faintBlock;
+        return mBlockHilighted;
     }
 
-    public void setFaintBlock(boolean faintBlock)
+    public void setBlockHighlighted(boolean highlightBlock)
     {
-        this.faintBlock = faintBlock;
+        mBlockHilighted = highlightBlock;
     }
     
     // draw the playfield and block on the canvas
@@ -140,7 +140,7 @@ public class PlayfieldView extends View
 	        if (block != null)
 	        {
     	        Paint paint;
-    	        if (faintBlock)
+    	        if (mBlockHilighted)
     	            paint = paints.get(block.getColor() & 0x7FFFFFFF);
     	        else
     	            paint = paints.get(block.getColor());

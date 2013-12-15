@@ -1,12 +1,17 @@
 package edu.illinois.cs241.tetris;
 
+import java.nio.*;
 import java.util.*;
 import android.graphics.*;
+import android.util.*;
 
 public class Playfield
 {
 	private int rows, hidRows, cols;
 	private int[][] field;
+	private ByteBuffer buffer;
+	private ArrayList<Integer> randColors;
+	private ArrayList<Integer> randPositions;
 	
 	public Playfield(int rows, int cols)
 	{
@@ -18,6 +23,15 @@ public class Playfield
         this.rows = rows;
         this.cols = cols;
         hidRows = hiddenRows;
+        buffer = ByteBuffer.allocate(rows * cols * 4);
+        
+        randColors = new ArrayList<Integer>(Tetromino.colors.length);
+        for (int color: Tetromino.colors)
+            randColors.add(color);
+        
+        randPositions = new ArrayList<Integer>(rows);
+        for (int i = 0; i < cols; i++)
+            randPositions.add(i);
         
         // set all colors to transparent
         field = new int[rows + hidRows][cols];
@@ -117,5 +131,39 @@ public class Playfield
     	    }
         }
     	return false;
+    }
+    
+    public byte[] exportField()
+    {
+        buffer.clear();
+        IntBuffer iBuffer = buffer.asIntBuffer();
+        for (int r = hidRows; r < hidRows + rows; r++)
+           iBuffer.put(field[r]);
+        return buffer.array();
+    }
+    
+    public void importField(byte[] bytes)
+    {
+        buffer.clear();
+        buffer.put(bytes);
+        buffer.clear();
+        IntBuffer iBuffer = buffer.asIntBuffer();
+        for (int r = hidRows; r < hidRows + rows; r++)
+            iBuffer.get(field[r]);
+    }
+    
+    public void insertRandRow()
+    {
+        int[] clearRow = field[0];
+        Arrays.fill(clearRow, 0);
+        Collections.shuffle(randPositions);
+        Collections.shuffle(randColors);
+        for (int i = 0; i < 5; i++)
+            clearRow[randPositions.get(i)] = randColors.get(i);
+        
+        for (int i = 0; i < rows + hidRows - 1; i++)
+            field[i] = field[i+1];
+        
+        field[rows + hidRows - 1] = clearRow;
     }
 }

@@ -6,7 +6,6 @@ import android.content.*;
 import android.os.*;
 import android.view.*;
 import android.widget.*;
-import edu.illinois.cs241.tetris.*;
 
 
 public class MenuActivity extends Activity
