@@ -31,17 +31,7 @@
         android:textColor="#FFFFFFFF"
         android:textSize="50sp" />
 
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:layout_marginTop="16dp"
-        android:background="#88000000"
-        android:gravity="center"
-        android:onClick="onScore"
-        android:text="@string/score_label"
-        android:textColor="#FFFFFFFF"
-        android:textSize="50sp" />
+    
 
     <Button
         android:layout_width="match_parent"
@@ -52,6 +42,17 @@
         android:gravity="center"
         android:onClick="onHelp"
         android:text="@string/help_label"
+        android:textColor="#FFFFFFFF"
+        android:textSize="50sp" />
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:layout_marginTop="16dp"
+        android:background="#88000000"
+        android:gravity="center"
+        android:onClick="onCredit"
+        android:text="@string/credit_label"
         android:textColor="#FFFFFFFF"
         android:textSize="50sp" />
 

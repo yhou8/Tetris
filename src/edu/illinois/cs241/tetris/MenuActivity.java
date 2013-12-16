@@ -1,5 +1,8 @@
 package edu.illinois.cs241.tetris;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 import android.app.*;
 import android.bluetooth.*;
 import android.content.*;
@@ -60,15 +63,15 @@ public class MenuActivity extends Activity
         }
     }
     
-    public void onScore(View v)
-    {
-        // not implemented
-        Toast.makeText(this, "Not implemented", Toast.LENGTH_SHORT).show();
-    }
     
     public void onHelp(View v)
     {
-        // not implemented
-        Toast.makeText(this, "Not implemented", Toast.LENGTH_SHORT).show();
+    	startActivity(new Intent(this, HelpActivity.class));
+    }
+    public void onCredit (View v)
+    {
+    	  AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    	  builder.setMessage("Built By:\nYusheng Hou and Jiaxin Lin\n(Press back button to dismiss)");
+    	  builder.create().show();
     }
 }
