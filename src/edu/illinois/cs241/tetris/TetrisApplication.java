@@ -27,7 +27,8 @@ public class TetrisApplication extends Application
     public static final int CLEAR_ROW = 1;
     public static final int WIN = 2;
     public static final int LOSE = 3;
-    public static final int ERROR = 4;
+    public static final int CLEAN_UP = 4;
+    public static final int CONNECTION_ERROR = 5;
     
     // multiplayer game states
     public static final int WAITING = 0;

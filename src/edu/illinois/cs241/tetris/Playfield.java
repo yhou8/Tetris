@@ -3,7 +3,6 @@ package edu.illinois.cs241.tetris;
 import java.nio.*;
 import java.util.*;
 import android.graphics.*;
-import android.util.*;
 
 public class Playfield
 {
@@ -131,6 +130,11 @@ public class Playfield
     	    }
         }
     	return false;
+    }
+    
+    public int getExportSize()
+    {
+        return rows * cols * 4;
     }
     
     public byte[] exportField()

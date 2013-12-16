@@ -9,6 +9,7 @@ public class PlayfieldView extends View
 {
     private static final SparseArray<Paint> paints;
     private static final Paint border;
+    private static final Paint highlight;
 
     private Playfield playfield;
     private Tetromino block;
@@ -33,6 +34,8 @@ public class PlayfieldView extends View
 	    }
 	    border = new Paint();
 	    border.setColor(Color.BLACK);
+	    highlight = new Paint();
+	    highlight.setColor(Color.LTGRAY);
 	}
 	
 	public PlayfieldView(Context context)
@@ -40,7 +43,8 @@ public class PlayfieldView extends View
 		super(context);
 	}
 
-	public PlayfieldView(Context context, AttributeSet attrs)
+	public PlayfieldView(Context context
+	        , AttributeSet attrs)
 	{
 		super(context, attrs);
 	}
@@ -116,10 +120,10 @@ public class PlayfieldView extends View
 	        }
 	        
 	        // draw border
-	        canvas.drawLine(left, top, right, top, border);
-            canvas.drawLine(left, bottom, right, bottom, border);
-            canvas.drawLine(left, top, left, bottom, border);
-            canvas.drawLine(right, top, right, bottom, border);
+	        canvas.drawLine(left, top, right, top, highlight);
+            canvas.drawLine(left, bottom, right, bottom, highlight);
+            canvas.drawLine(left, top, left, bottom, highlight);
+            canvas.drawLine(right, top, right, bottom, highlight);
 
             // draw playfield
             float x0, x1;
@@ -132,7 +136,13 @@ public class PlayfieldView extends View
                 {
                     int color = playfield.getColor(r, c);
                     if (color != 0)
+                    {
                         canvas.drawRect(x0, y0, x1, y1, paints.get(color));
+                        canvas.drawLine(x0, y0, x0, y1, border);
+                        canvas.drawLine(x1, y0, x1, y1, border);
+                        canvas.drawLine(x0, y0, x1, y0, border);
+                        canvas.drawLine(x0, y1, x1, y1, border);
+                    }
                 }
             }
 
@@ -140,10 +150,17 @@ public class PlayfieldView extends View
 	        if (block != null)
 	        {
     	        Paint paint;
+    	        Paint line;
     	        if (mBlockHilighted)
+    	        {
     	            paint = paints.get(block.getColor() & 0x7FFFFFFF);
+    	            line = highlight;
+    	        }
     	        else
+    	        {
     	            paint = paints.get(block.getColor());
+    	            line = border;
+    	        }
     	        
     	        for (Point p: block.getCoords())
     	        {
@@ -152,6 +169,10 @@ public class PlayfieldView extends View
     	            {
     	                float x = left + length * p.x, y = top + length * p.y;
     	                canvas.drawRect(x, y, x + length, y + length, paint);
+                        canvas.drawLine(x, y, x, y + length, line);
+                        canvas.drawLine(x + length, y, x + length, y + length, line);
+                        canvas.drawLine(x, y, x + length, y, line);
+                        canvas.drawLine(x, y + length, x + length, y + length, line);
     	            }
     	        }
 	        }

@@ -15,12 +15,14 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@android:style/Theme.NoTitleBar.Fullscreen">
+        >
 
         <activity
             android:name="edu.illinois.cs241.tetris.MenuActivity"
             android:label="@string/app_name"
-            android:screenOrientation="portrait" >
+            android:screenOrientation="portrait"
+	        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+            >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -28,11 +30,13 @@
         </activity>
         <activity android:name="edu.illinois.cs241.tetris.MultiplayerMenuActivity"
             android:label="@string/app_name"
+	        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:screenOrientation="portrait" >
         </activity>
         
         <activity android:name="edu.illinois.cs241.tetris.PlayActivity"
             android:label="@string/app_name"
+	        android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
             android:screenOrientation="portrait" >
         </activity>
 

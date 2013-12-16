@@ -9,7 +9,7 @@ import android.os.*;
 import android.view.*;
 import android.widget.*;
 
-public class PlayActivity extends Activity implements Runnable
+public class PlayActivity extends Activity implements Runnable, Handler.Callback
 {
     private Tetromino mCurBlock;
     private Tetromino mNextBlock;
@@ -21,13 +21,12 @@ public class PlayActivity extends Activity implements Runnable
     private PlayfieldView mNextBlockView;
     
     private OutputHandler mOutputHandler;
-    private InputHandler mInputHandler;
+    private Handler mInputHandler;
     private GestureDetector mGestureHandler;
 
     private String mGameMode;
     private String mOppName;
     private BluetoothSocket mBTsocket;
-    
     private int mGameState;
     private ArrayList<Integer> mActionQueue;
     
@@ -41,7 +40,7 @@ public class PlayActivity extends Activity implements Runnable
         mCurBlock = new Tetromino();
         mNextBlock = new Tetromino();
         mMyPlayfield = new Playfield(20, 10, 2);
-        mOppPlayfield = new Playfield(20, 10, 0);
+        mOppPlayfield = new Playfield(20, 10);
         
         mMyFieldView = (PlayfieldView)this.findViewById(R.id.play_field);
         mMyFieldView.setPlayfield(mMyPlayfield);
@@ -56,21 +55,21 @@ public class PlayActivity extends Activity implements Runnable
         mNextBlockView.setBlockHighlighted(false);
         createNextBlock();
         
-        mInputHandler = new InputHandler(getMainLooper());
-        mGestureHandler = new GestureDetector(this, new TetrisGestureListener(this));
-        mActionQueue = new ArrayList<Integer>();
+        mInputHandler = new Handler(getMainLooper(), this);
+        mGestureHandler = new GestureDetector(this, new TetrisGestureListener());
         
         // extract Intent extras
         Intent intent = getIntent();
         mGameMode = intent.getStringExtra(TetrisApplication.MODE_KEY);
-        if (!mGameMode.equals(TetrisApplication.SINGLE_MODE))
+        if (!TetrisApplication.SINGLE_MODE.equals(mGameMode))
         {
             mOppName = intent.getStringExtra(TetrisApplication.NAME_KEY);
+            mActionQueue = new ArrayList<Integer>();
             mBTsocket = TetrisApplication.getBTSocket();
 
             try
             {
-                InputThread inputThread = new InputThread(mInputHandler, mBTsocket.getInputStream());
+                InputThread inputThread = new InputThread(mInputHandler, mBTsocket.getInputStream(), mMyPlayfield.getExportSize());
                 inputThread.start();
              
                 HandlerThread outputThread = new HandlerThread("edu.illinois.cs241.outputThread");
@@ -79,7 +78,7 @@ public class PlayActivity extends Activity implements Runnable
             }
             catch (IOException e)
             {
-                Toast.makeText(this, "Quitting due to connection errors", Toast.LENGTH_SHORT);
+                Toast.makeText(this, "Connection Error, Closing", Toast.LENGTH_SHORT);
                 finish();
             }
         }
@@ -91,47 +90,192 @@ public class PlayActivity extends Activity implements Runnable
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent event)
-    {
-        return mGestureHandler.onTouchEvent(event);
-    }
-
-    @Override
-    protected void onRestart()
-    {
-        super.onRestart();
-    }
-
-    @Override
-    protected void onStart()
-    {
-        super.onStart();
-    }
-
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-    }
-
-    @Override
     protected void onPause()
     {
-        // close sockets, streams?
+        if (mBTsocket != null)
+            endConnection();
+        stopRunning();
         super.onPause();
     }
 
+    // run timed events
     @Override
-    protected void onStop()
+    public void run()
     {
-        super.onStop();
+        if (TetrisApplication.SINGLE_MODE.equals(mGameMode))
+            runSingleMode();
+        else if (TetrisApplication.SEESAW_MODE.equals(mGameMode))
+            runSeesawMode();
+        else if (TetrisApplication.SABOTAGE_MODE.equals(mGameMode))
+            runSabotageMode();
+    }
+    
+    private void runSingleMode()
+    {
+        if (mGameState == TetrisApplication.WAITING)
+        {
+            mGameState = TetrisApplication.IN_CONTROL;
+            shiftNextBlock();
+            mInputHandler.post(this);
+        }
+        // check if block can be moved down
+        else if (!moveBlock(0, 1))
+        {
+            if (mMyPlayfield.insertBlock(mCurBlock) == 0)
+                mMyFieldView.invalidateBlock();
+            else
+                mMyFieldView.invalidatePlayfield();
+            
+            // check game over
+            if (mMyPlayfield.reachedTop())
+            {
+                Toast.makeText(this, "Game over", Toast.LENGTH_SHORT).show();
+                stopRunning();
+            }
+            else
+            {
+                mGameState = TetrisApplication.WAITING;
+                mInputHandler.post(this);
+            }
+        }
+        else
+        {
+            mMyFieldView.invalidateBlock();
+            mInputHandler.postDelayed(this, 500);
+        }
+    }
+
+    private void runSeesawMode()
+    {
+        if (mGameState == TetrisApplication.WAITING)
+        {
+            if (mActionQueue.isEmpty())
+            {
+                shiftNextBlock();
+                mGameState = TetrisApplication.IN_CONTROL;
+                mInputHandler.post(this);
+                return;
+            }
+            else
+            {
+                switch (mActionQueue.remove(0))
+                {
+                    case TetrisApplication.CLEAR_ROW:
+                        mMyPlayfield.insertRandRow();
+                        mMyFieldView.invalidatePlayfield();
+                        sendUpdateField();
+                        if (mMyPlayfield.reachedTop())
+                        {
+                            Toast.makeText(this, mOppName + " wins!", Toast.LENGTH_SHORT).show();
+                            mOutputHandler.sendMessage(mOutputHandler.obtainMessage(TetrisApplication.LOSE));
+                            stopRunning();
+                        }
+                        mInputHandler.post(this);
+                        return;
+                    case TetrisApplication.LOSE:
+                        Toast.makeText(this, "You win!", Toast.LENGTH_SHORT).show();
+                        stopRunning();
+                        endConnection();
+                        return;
+                    case TetrisApplication.CONNECTION_ERROR:
+                        Toast.makeText(this, "Lost Connection, Stopping...", Toast.LENGTH_SHORT).show();
+                        stopRunning();
+                        endConnection();
+                        return;
+                    case TetrisApplication.CLEAN_UP:
+                        endConnection();
+                        return;
+                }
+            }
+        }
+        else
+            runMultiMode();
+    }
+
+    private void runSabotageMode()
+    {
+        if (mGameState == TetrisApplication.WAITING)
+        {
+            if (mActionQueue.isEmpty())
+            {
+                shiftNextBlock();
+                mGameState = TetrisApplication.IN_CONTROL;
+                mInputHandler.post(this);
+                return;
+            }
+            else
+            {
+                switch (mActionQueue.remove(0))
+                {
+                    case TetrisApplication.CLEAR_ROW:
+                        createRandBlock();
+                        mGameState = TetrisApplication.HANDLING;
+                        mInputHandler.post(this);
+                        return;
+                    case TetrisApplication.LOSE:
+                        Toast.makeText(this, "You win!", Toast.LENGTH_SHORT).show();
+                        stopRunning();
+                        endConnection();
+                        return;
+                    case TetrisApplication.CONNECTION_ERROR:
+                        Toast.makeText(this, "Lost Connection, Stopping...", Toast.LENGTH_SHORT).show();
+                        stopRunning();
+                        endConnection();
+                        return;
+                    case TetrisApplication.CLEAN_UP:
+                        endConnection();
+                        return;
+                }
+            }
+        }
+        else if (mGameState == TetrisApplication.IN_CONTROL || mGameState == TetrisApplication.HANDLING)
+            runMultiMode();
+        else
+            endConnection();
+    }
+
+    private void runMultiMode()
+    {
+        if (!moveBlock(0, 1))
+        {
+            int rowsCleared = mMyPlayfield.insertBlock(mCurBlock); 
+            if (rowsCleared == 0)
+                mMyFieldView.invalidateBlock();
+            else
+            {
+                for (int i = 0; i < rowsCleared; i++)
+                    mOutputHandler.sendMessage(mOutputHandler.obtainMessage(TetrisApplication.CLEAR_ROW));
+                mMyFieldView.invalidatePlayfield();
+            }
+            sendUpdateField();
+            
+            // check game over
+            if (mMyPlayfield.reachedTop())
+            {
+                Toast.makeText(this, mOppName + " wins!", Toast.LENGTH_SHORT).show();
+                mOutputHandler.sendMessage(mOutputHandler.obtainMessage(TetrisApplication.LOSE));
+                stopRunning();
+            }
+            else
+            {
+                mGameState = TetrisApplication.WAITING;
+                mInputHandler.post(this);
+            }
+        }
+        else
+        {
+            mMyFieldView.invalidateBlock();
+            if (mGameState == TetrisApplication.HANDLING)
+                mInputHandler.postDelayed(this, 50);
+            else
+                mInputHandler.postDelayed(this, 500);
+        }
     }
 
     @Override
-    protected void onDestroy()
+    public boolean onTouchEvent(MotionEvent event)
     {
-        mInputHandler.removeCallbacks(this);
-        super.onDestroy();
+        return mGestureHandler.onTouchEvent(event);
     }
 
     // create a random block and insert it into the next piece view
@@ -142,20 +286,21 @@ public class PlayActivity extends Activity implements Runnable
         mNextBlockView.setBlock(mNextBlock);
         mNextBlockView.invalidateBlock();
     }
-    
+
     // move the next block into the playfield
     private void shiftNextBlock()
     {
-        mNextBlock.getCenter().set((mMyPlayfield.getCols() - 1) / 2, -1);
-        mMyFieldView.setBlock(mNextBlock);
         mNextBlock = mCurBlock;
         mCurBlock = mNextBlockView.getBlock();
+        mCurBlock.getCenter().set((mMyPlayfield.getCols() - 1) / 2, -1);
+        mMyFieldView.setBlock(mCurBlock);
         createNextBlock();
     }
-    
+
     private void createRandBlock()
     {
         mCurBlock.copyRandBlock();
+        mCurBlock.getCenter().set((mMyPlayfield.getCols() - 1) / 2, -1);
         int rotate = (int)(Math.random() * 4);
         for (int i = 0; i <= rotate; i++)
             mCurBlock.rotateCW();
@@ -174,171 +319,45 @@ public class PlayActivity extends Activity implements Runnable
         }
         return true;
     }
-    
+
     // rotate the block until it reaches a valid orientation
     private void rotateBlock()
     {
         mCurBlock.rotateCW();
         while (!mMyPlayfield.canInsert(mCurBlock))
-            mCurBlock.rotateCW();
+        {
+            if (moveBlock(-1, 0))
+                return;
+            else if (moveBlock(1, 0))
+                return;
+            else 
+                mCurBlock.rotateCW();
+        }
     }
 
-    // run timed events
-    @Override
-    public void run()
+    private void sendUpdateField()
     {
-        if (mGameState == TetrisApplication.WAITING)
-        {
-            if (mActionQueue.isEmpty())
-            {
-                shiftNextBlock();
-                mGameState = TetrisApplication.IN_CONTROL;
-                mInputHandler.post(this);
-                return;
-            }
-            else
-            {
-                switch (mActionQueue.remove(0))
-                {
-                    case TetrisApplication.CLEAR_ROW:
-                        if (TetrisApplication.SEESAW_MODE.equals(mGameMode))
-                        {
-                            mMyPlayfield.insertRandRow();
-                            mMyFieldView.invalidatePlayfield();
-                            Message msg = mOutputHandler.obtainMessage(TetrisApplication.UPDATE_FIELD);
-                            msg.obj = mMyPlayfield.exportField();
-                            mOutputHandler.sendMessage(msg);
-                            if (mMyPlayfield.reachedTop())
-                            {
-                                mNextBlockView.setBlock(null);
-                                mNextBlockView.invalidatePlayfield();
-                                mInputHandler.removeCallbacks(this);
-                                Toast.makeText(this, mOppName + " wins!", Toast.LENGTH_SHORT);
-                                Message msgLose = mOutputHandler.obtainMessage(TetrisApplication.LOSE);
-                                mOutputHandler.sendMessage(msgLose);
-                                try
-                                {
-                                    mBTsocket.getInputStream().close();
-                                    mBTsocket.getOutputStream().close();
-                                    mBTsocket.close();
-                                } catch (IOException e){}
-                                return;
-                            }
-                            else
-                                mInputHandler.post(this);
-                        }
-                        else
-                        {
-                            mGameState = TetrisApplication.HANDLING;
-                            createRandBlock();
-                            mInputHandler.post(this);
-                        }
-                        return;
-                    case TetrisApplication.LOSE:
-                        mNextBlockView.setBlock(null);
-                        mNextBlockView.invalidatePlayfield();
-                        mInputHandler.removeCallbacks(this);
-                        Toast.makeText(this, "You win!", Toast.LENGTH_SHORT);
-                        try
-                        {
-                            mBTsocket.getInputStream().close();
-                            mBTsocket.getOutputStream().close();
-                            mBTsocket.close();
-                        } catch (IOException e){}
-                        return;
-                    case TetrisApplication.ERROR:
-                        mNextBlockView.setBlock(null);
-                        mNextBlockView.invalidatePlayfield();
-                        mInputHandler.removeCallbacks(this);
-                        Toast.makeText(this, "Connection error, stopping...", Toast.LENGTH_SHORT);
-                        try
-                        {
-                            mBTsocket.getInputStream().close();
-                            mBTsocket.getOutputStream().close();
-                            mBTsocket.close();
-                        } catch (IOException e){}
-                        return;
-                }
-            }
-        }
-        
-        else if (mGameState == TetrisApplication.IN_CONTROL || mGameState == TetrisApplication.HANDLING && TetrisApplication.SABOTAGE_MODE.equals(mGameMode))
-        {
-            // block reached bottom
-            if (!moveBlock(0, 1))
-            {
-                if (mMyPlayfield.insertBlock(mCurBlock) == 0)
-                {
-                    if (!TetrisApplication.SINGLE_MODE.equals(mGameMode))
-                    {
-                        Message msg = mOutputHandler.obtainMessage(TetrisApplication.UPDATE_FIELD);
-                        msg.obj = mMyPlayfield.exportField();
-                        mOutputHandler.sendMessage(msg);
-                    }
-                    mMyFieldView.invalidateBlock();
-                }
-                else
-                {
-                    mMyFieldView.invalidatePlayfield();
-                    if (!TetrisApplication.SINGLE_MODE.equals(mGameMode))
-                    {
-                        Message msg = mOutputHandler.obtainMessage(TetrisApplication.CLEAR_ROW);
-                        msg.obj = mMyPlayfield.exportField();
-                        mOutputHandler.sendMessage(msg);
-                    }
-                }
-                
-                // check game over
-                if (mMyPlayfield.reachedTop())
-                {
-                    mNextBlockView.setBlock(null);
-                    mNextBlockView.invalidatePlayfield();
-                    if (TetrisApplication.SINGLE_MODE.equals(mGameMode))
-                    {
-                        Toast.makeText(this, "Game over", Toast.LENGTH_SHORT).show();
-                        return;
-                    }
-                    else
-                    {
-                        Toast.makeText(this, mOppName + " wins!", Toast.LENGTH_SHORT).show();
-                        Message msgLose = mOutputHandler.obtainMessage(TetrisApplication.LOSE);
-                        mOutputHandler.sendMessage(msgLose);
-                        try
-                        {
-                            mBTsocket.getInputStream().close();
-                            mBTsocket.getOutputStream().close();
-                            mBTsocket.close();
-                        } catch (IOException e){}
-                    }
-                }
-                else
-                {
-                    if (mGameState == TetrisApplication.IN_CONTROL)
-                        shiftNextBlock();
-                    mInputHandler.post(this);
-                }
-                mGameState = TetrisApplication.WAITING;
-            }
-            else
-            {
-                mMyFieldView.invalidateBlock();
-                if (mGameState == TetrisApplication.IN_CONTROL)
-                    mInputHandler.postDelayed(this, 500);
-                else
-                    mInputHandler.post(this);
-            }
-        }
+        Message msg = mOutputHandler.obtainMessage(TetrisApplication.UPDATE_FIELD);
+        msg.obj = mMyPlayfield.exportField();
+        mOutputHandler.sendMessage(msg);
+    }
+    
+    private void stopRunning()
+    {
+        mNextBlockView.setBlock(null);
+        mNextBlockView.invalidatePlayfield();
+        mInputHandler.removeCallbacks(this);
+    }
+    
+    private void endConnection()
+    {
+        try {mBTsocket.getInputStream().close();} catch (IOException e){}
+        try {mBTsocket.getOutputStream().close();} catch (IOException e){}
+        try {mBTsocket.close();} catch (IOException e){}
     }
     
     private class TetrisGestureListener extends GestureDetector.SimpleOnGestureListener
     {
-        private Runnable mRunner;
-        
-        public TetrisGestureListener(Runnable run)
-        {
-            mRunner = run;
-        }
-        
         @Override
         public boolean onDown(MotionEvent e)
         {
@@ -364,8 +383,8 @@ public class PlayActivity extends Activity implements Runnable
                     if (velocityY > 0)
                     {
                         while (moveBlock(0, 1));
-                        mInputHandler.removeCallbacks(mRunner);
-                        mInputHandler.postDelayed(mRunner, 500);
+                        mInputHandler.removeCallbacks(PlayActivity.this);
+                        mInputHandler.postDelayed(PlayActivity.this, 500);
                         mMyFieldView.invalidatePlayfield();
                     }
                     else
@@ -380,32 +399,24 @@ public class PlayActivity extends Activity implements Runnable
         
     }
     
-    class InputHandler extends Handler
+    @Override
+    public boolean handleMessage(Message msg)
     {
-        public InputHandler(Looper looper)
+        if (msg.what == TetrisApplication.UPDATE_FIELD)
         {
-            super(looper);
+            mOppPlayfield.importField((byte[])msg.obj);
+            mOppFieldView.invalidatePlayfield();
         }
-
-        @Override
-        public void handleMessage(Message msg)
+        else if (msg.what == TetrisApplication.CLEAR_ROW)
+            mActionQueue.add(msg.what);
+        else
         {
-            if (msg.what == TetrisApplication.UPDATE_FIELD || msg.what == TetrisApplication.CLEAR_ROW)
-            {
-                byte[] buffer =(byte[]) msg.obj;
-                mOppPlayfield.importField(buffer);
-                mOppFieldView.invalidatePlayfield();
-                
-                if (msg.what == TetrisApplication.CLEAR_ROW)
-                    mActionQueue.add(msg.what);
-            }
-            else
-            {
-                mActionQueue.clear();
-                mActionQueue.add(msg.what);
-                mGameState = TetrisApplication.WAITING;
-            }
+            mActionQueue.clear();
+            mActionQueue.add(0, msg.what);
+            mGameState = TetrisApplication.WAITING;
         }
+            
+        return true;
     }
 }
 
@@ -427,19 +438,24 @@ class OutputHandler extends Handler
         try
         {
             mOutputStream.writeInt(msg.what);
-            if ( msg.what == TetrisApplication.UPDATE_FIELD || msg.what == TetrisApplication.CLEAR_ROW)
-                mOutputStream.write((byte [])msg.obj, 0, 800);
+            if (msg.what == TetrisApplication.UPDATE_FIELD)
+            {
+                byte[] buffer = (byte[]) msg.obj;
+                mOutputStream.write(buffer, 0, buffer.length);
+            }
             mOutputStream.flush();
+            // last message to send
+            if (msg.what == TetrisApplication.WIN || msg.what == TetrisApplication.LOSE)
+            {
+                mInputHandler.sendMessage(mInputHandler.obtainMessage(TetrisApplication.CLEAN_UP));
+                try {mOutputStream.close();} catch (IOException e){}
+                ((HandlerThread)getLooper().getThread()).quit();
+            }
         }
         catch (IOException e)
         {
-            Message retMsg = mInputHandler.obtainMessage(TetrisApplication.ERROR);
-            mInputHandler.sendMessage(retMsg);
-        }
-        
-        if (msg.what == TetrisApplication.WIN || msg.what == TetrisApplication.LOSE || msg.what == TetrisApplication.ERROR)
-        {
-            try {mOutputStream.close();} catch (IOException e){}
+            mInputHandler.sendMessageDelayed(mInputHandler.obtainMessage(TetrisApplication.CONNECTION_ERROR), 500);
+            try {mOutputStream.close();} catch (IOException ex){}
             ((HandlerThread)getLooper().getThread()).quit();
         }
     }
@@ -449,43 +465,49 @@ class InputThread extends Thread
 {
     private Handler mInputHandler;
     private DataInputStream mInputStream;
-    private boolean exit;
+    private int mFieldExportSize;
     
-    public InputThread(Handler inputHandler, InputStream inputStream)
+    public InputThread(Handler inputHandler, InputStream inputStream, int fieldExportSize)
     {
         super("edu.illinois.cs241.inputThread");
         mInputHandler = inputHandler;
         mInputStream = new DataInputStream(new BufferedInputStream(inputStream));
-        exit = false;
+        mFieldExportSize = fieldExportSize;
     }
 
+    // read message from opponent and send message to handler on UI thread
     @Override
     public void run()
     {
-        while (!exit)
+        while (true)
         {
-            Message msg = mInputHandler.obtainMessage();
             try
             {
-                int what = mInputStream.readInt();
-                msg.what = what;
-                if (what == TetrisApplication.CLEAR_ROW || what == TetrisApplication.UPDATE_FIELD)
+                Message msg = mInputHandler.obtainMessage(mInputStream.readInt());
+                
+                // update field message has the field attached
+                if (msg.what == TetrisApplication.UPDATE_FIELD)
                 {
-                    byte[] buffer = new byte[800];
+                    byte[] buffer = new byte[mFieldExportSize];
                     mInputStream.read(buffer);
                     msg.obj = buffer;
                 }
-                else if (what == TetrisApplication.WIN || what == TetrisApplication.LOSE || what == TetrisApplication.ERROR)
-                    exit = true;
+                // this is the last expected message
+                else if (msg.what == TetrisApplication.WIN || msg.what == TetrisApplication.LOSE)
+                {
+                    mInputHandler.removeMessages(TetrisApplication.CONNECTION_ERROR);
+                    mInputHandler.sendMessageAtFrontOfQueue(msg);
+                    try {mInputStream.close();} catch (IOException e){}
+                    return;
+                }
                 mInputHandler.sendMessage(msg);
             }
             catch(IOException e)
             {
-                msg.what = TetrisApplication.ERROR;
-                mInputHandler.sendMessage(msg);
-                exit = true;
+                mInputHandler.sendMessage(mInputHandler.obtainMessage(TetrisApplication.CONNECTION_ERROR));
+                try {mInputStream.close();} catch (IOException ex){}
+                return;
             }
         }
-        try {mInputStream.close();} catch (IOException e){}
     }
 }
